@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33326.253
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YandexCloud.Extensions.Logging", "src\YandexCloud.Extensions.Logging\YandexCloud.Extensions.Logging.csproj", "{52FC4C49-09BA-4643-91B6-0CD255BE4C3A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YandexCloud.Extensions.Logging.Demo", "examples\YandexCloud.Extensions.Logging.Demo\YandexCloud.Extensions.Logging.Demo.csproj", "{5FFF2C80-7468-45A0-AC4C-EA68D10BD256}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{52FC4C49-09BA-4643-91B6-0CD255BE4C3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52FC4C49-09BA-4643-91B6-0CD255BE4C3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52FC4C49-09BA-4643-91B6-0CD255BE4C3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52FC4C49-09BA-4643-91B6-0CD255BE4C3A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FFF2C80-7468-45A0-AC4C-EA68D10BD256}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FFF2C80-7468-45A0-AC4C-EA68D10BD256}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FFF2C80-7468-45A0-AC4C-EA68D10BD256}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FFF2C80-7468-45A0-AC4C-EA68D10BD256}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6087EF73-CF79-4CC4-9D2A-ED0D52AC2005}
+	EndGlobalSection
+EndGlobal
