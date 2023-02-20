@@ -1,54 +1,62 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using Yandex.Cloud;
+using Yandex.Cloud.Credentials;
 using Yandex.Cloud.Logging.V1;
+using Microsoft.Extensions.DependencyInjection;
+using static Yandex.Cloud.K8S.V1.NetworkPolicy.Types;
 using static Yandex.Cloud.Logging.V1.LogLevel.Types;
+using Yandex.Cloud.Generated;
 
 namespace YandexCloud.Extensions.Logging
 {
     public sealed class YandexCloudLogger : Microsoft.Extensions.Logging.ILogger
     {
         private const int MaxCountLogs = 100;
-
+             
         private readonly string _name;
         private readonly Func<YandexCloudLoggerConfiguration> _getCurrentConfig;
 
         private CancellationTokenSource tokenSource = new CancellationTokenSource();
                 
         private readonly LogIngestionService.LogIngestionServiceClient _yandexLogIngestionServiceClient;
-               
-        private readonly Destination _destination;
-        private readonly string _streamName;
-        private readonly string _resourceId;
-        private readonly string _resourceType;
+                
+        private readonly Sdk _sdk;
+   
         private readonly int _seconds = 10;
         private readonly int _retryCount = 10;
 
-        ConcurrentQueue<IncomingLogEntry> _queue = new ConcurrentQueue<IncomingLogEntry>();
-        public YandexCloudLogger(
-            string name,
-            Func<YandexCloudLoggerConfiguration> getCurrentConfig)
-        {
-            (_name, _getCurrentConfig) = (name, getCurrentConfig);
-            _yandexLogIngestionServiceClient = _getCurrentConfig().YandexCloudSdk.Services.Logging.LogIngestionService;
-            _destination = new Destination()
-            {
-                FolderId = getCurrentConfig().FolderId,
-                LogGroupId = getCurrentConfig().LogGroupId
-            };
-            _streamName = _getCurrentConfig().StreamName;
-            _resourceId = _getCurrentConfig().ResourceId;
-            _resourceType = _getCurrentConfig().ResourceType;
-            Task.Run(()=>Start(tokenSource.Token), tokenSource.Token);          
-        }
+       
+        private readonly YandexCloudLoggerConfiguration _configuration;
 
+        ConcurrentQueue<IncomingLogEntry> _queue = new ConcurrentQueue<IncomingLogEntry>();
+
+       
+        public YandexCloudLogger(string name, Func<YandexCloudLoggerConfiguration> getCurrentConfig, Sdk? sdk = default) 
+        {
+            (_name, _getCurrentConfig, _sdk) = (name, getCurrentConfig, sdk);
+            var config = _getCurrentConfig();
+            if (getCurrentConfig().CredentialsProvider is not null)
+            {
+                _sdk = new Sdk(config.CredentialsProvider);
+            }
+            if(_sdk is null)
+            {
+                throw new Exception("Yandex cloud credentials provider is not found.");
+            }
+            _yandexLogIngestionServiceClient = _sdk.Services.Logging.LogIngestionService;
+            Task.Run(() => Start(tokenSource.Token), tokenSource.Token);
+        }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default!;
 
         public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
-        {           
-           return ((int)_getCurrentConfig().LogLevel <= (int)logLevel)? true : false;
+        {
+            return (logLevel != Microsoft.Extensions.Logging.LogLevel.None);              
         }
 
         private Level? ConvertLogLevel(Microsoft.Extensions.Logging.LogLevel logLevel) => logLevel switch
@@ -60,16 +68,17 @@ namespace YandexCloud.Extensions.Logging
             Microsoft.Extensions.Logging.LogLevel.Error => Level.Error,
             Microsoft.Extensions.Logging.LogLevel.Critical => Level.Fatal,
             _ => null
-        };
+        };             
 
         public async void Log<TState>(
+            DateTime dateTime,
             Microsoft.Extensions.Logging.LogLevel logLevel,
             EventId eventId,
             TState state,
             Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            var dateTimeNow = DateTime.UtcNow;       
+            var config = _getCurrentConfig();
 
             if (!IsEnabled(logLevel))
             {
@@ -83,9 +92,8 @@ namespace YandexCloud.Extensions.Logging
             }
 
             IncomingLogEntry entry;
-
-            // TODO Поменять на фул нейм
-            if (typeof(TState).Name == "FormattedLogValues")
+                      
+            if (typeof(TState).FullName == "Microsoft.Extensions.Logging.FormattedLogValues")
             {
                 entry = new()
                 {
@@ -93,29 +101,40 @@ namespace YandexCloud.Extensions.Logging
                     Message = state.ToString(),
                     Timestamp = new Timestamp()
                     {
-                        Nanos = dateTimeNow.ToTimestamp().Nanos,
-                        Seconds = dateTimeNow.ToTimestamp().Seconds
+                        Nanos = dateTime.ToTimestamp().Nanos,
+                        Seconds = dateTime.ToTimestamp().Seconds
                     },
-                    StreamName = _streamName
+                    StreamName = config.StreamName ?? _name
                 };
             }
             else
-            {
+            {                
                 entry = new()
                 {
                     JsonPayload = Struct.Parser.ParseJson(JsonSerializer.Serialize(state)),
                     Level = convertibleLogLevel.Value,
-                    Message = $"({eventId.Id}) {eventId.Name}",
+                    Message = $"{eventId.Id} {eventId.Name}",
                     Timestamp = new Timestamp()
                     {
-                        Nanos = dateTimeNow.ToTimestamp().Nanos,
-                        Seconds = dateTimeNow.ToTimestamp().Seconds
+                        Nanos = dateTime.ToTimestamp().Nanos,
+                        Seconds = dateTime.ToTimestamp().Seconds
                     },
-                    StreamName = _streamName
+                    StreamName = config.StreamName ?? _name
                 };
             }
             _queue.Enqueue(entry);                            
         }
+
+        public async void Log<TState>(
+            Microsoft.Extensions.Logging.LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            Log(DateTime.UtcNow, logLevel, eventId, state, exception, formatter);
+        }
+
 
         private async Task Start(CancellationToken cancellationToken = default) 
         {
@@ -162,17 +181,22 @@ namespace YandexCloud.Extensions.Logging
         {
             WriteResponse writeResponse = null;
             int currentRetry = 0;
+            var config = _getCurrentConfig();
             while (true)
             {
                 try
                 {
                     WriteRequest request = new()
                     {
-                        Destination = _destination,
+                        Destination = new Destination()
+                        {
+                            FolderId = config.FolderId,
+                            LogGroupId = config.LogGroupId
+                        },
                         Resource = new LogEntryResource()
                         {
-                            Id = _resourceId,
-                            Type = _resourceType
+                            Id = config.ResourceId,
+                            Type = config.ResourceType
                         },
                     };
                     request.Entries.Add(list);

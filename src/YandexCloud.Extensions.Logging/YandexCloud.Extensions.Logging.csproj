@@ -7,7 +7,7 @@
     <Version>1.0.1</Version>
 	<Authors>Roman Shershnev</Authors>
 	<RepositoryUrl>https://github.com/RVShershnev/yc-extensions-logging</RepositoryUrl>
-	<Tags>Yandex Cloud</Tags>
+	<Tags>Yandex Cloud;Logging</Tags>
 	<GenerateDocumentationFile>True</GenerateDocumentationFile>
 	<SignAssembly>False</SignAssembly>
 	<Title>YandexCloud.IamJWTCredentials</Title>
@@ -16,6 +16,7 @@
 	<PackageTags>Yandex Cloud;Logging</PackageTags>
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>	
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	<Description>Microsoft.Extensions.Logging for Yandex Cloud Logging.</Description>
   </PropertyGroup>
 
   <ItemGroup>

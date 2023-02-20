@@ -1,10 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Yandex.Cloud;
+using Yandex.Cloud.Credentials;
 using Yandex.Cloud.Logging.V1;
 
 namespace YandexCloud.Extensions.Logging
@@ -12,12 +14,12 @@ namespace YandexCloud.Extensions.Logging
     /// <summary>
     /// Yandex Cloud Logger Configuration <see cref="https://cloud.yandex.ru/docs/logging/api-ref/grpc/log_ingestion_service"/>
     /// </summary>
-    public class YandexCloudLoggerConfiguration
+    public class YandexCloudLoggerConfiguration 
     {
         /// <summary>
         /// Sdk to use services provided by Yandex.Cloud.
         /// </summary>
-        public Sdk YandexCloudSdk { get; set; }
+        public ICredentialsProvider CredentialsProvider { get; set; }
 
         /// <summary>
         /// Entry should be written to default log group for the folder. 
@@ -35,7 +37,7 @@ namespace YandexCloud.Extensions.Logging
         /// Entry stream name. 
         /// Value must match the regular expression |[a-zA-Z][-a-zA-Z0-9_.]{0,63}.
         /// </summary>
-        public string StreamName { get; set; }
+        public string? StreamName { get; set; }
 
         /// <summary>
         /// Resource type, i.e., serverless.function. 
@@ -52,6 +54,7 @@ namespace YandexCloud.Extensions.Logging
         /// <summary>
         /// Default entry severity.
         /// </summary>
-        public Microsoft.Extensions.Logging.LogLevel LogLevel { get; set; }
+        public Dictionary<string, Microsoft.Extensions.Logging.LogLevel> LogLevel { get; set; }
+
     }
 }
