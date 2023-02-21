@@ -30,8 +30,8 @@ authorized_key.json
 ```json
 {
   "id": "***",
-  "service_account_id": ""***",",
-  "created_at": ""***",",
+  "service_account_id": "***",
+  "created_at": "***",
   "key_algorithm": "RSA_2048",
   "public_key": "***",
   "private_key": "***"
