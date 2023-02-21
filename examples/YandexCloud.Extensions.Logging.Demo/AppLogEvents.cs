@@ -12,6 +12,5 @@ namespace YandexCloud.Extensions.Logging.Demo
         internal static EventId Delete = new(1001, "Deleted");
         internal static EventId Update = new(1002, "Updated"); 
         internal static EventId Read = new(1003, "Read");
-
     }
 }

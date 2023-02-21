@@ -1,16 +1,12 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Yandex.Cloud;
-using Yandex.Cloud.Credentials;
 using Yandex.Cloud.Logging.V1;
 using Microsoft.Extensions.DependencyInjection;
 using static Yandex.Cloud.K8S.V1.NetworkPolicy.Types;
 using static Yandex.Cloud.Logging.V1.LogLevel.Types;
-using Yandex.Cloud.Generated;
 
 namespace YandexCloud.Extensions.Logging
 {
@@ -28,13 +24,9 @@ namespace YandexCloud.Extensions.Logging
         private readonly Sdk _sdk;
    
         private readonly int _seconds = 10;
-        private readonly int _retryCount = 10;
-
-       
-        private readonly YandexCloudLoggerConfiguration _configuration;
+        private readonly int _retryCount = 10;              
 
         ConcurrentQueue<IncomingLogEntry> _queue = new ConcurrentQueue<IncomingLogEntry>();
-
        
         public YandexCloudLogger(string name, Func<YandexCloudLoggerConfiguration> getCurrentConfig, Sdk? sdk = default) 
         {
@@ -55,10 +47,8 @@ namespace YandexCloud.Extensions.Logging
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => default!;
 
         public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
-        {
-            return (logLevel != Microsoft.Extensions.Logging.LogLevel.None);              
-        }
-
+            => logLevel != Microsoft.Extensions.Logging.LogLevel.None;             
+        
         private Level? ConvertLogLevel(Microsoft.Extensions.Logging.LogLevel logLevel) => logLevel switch
         {
             Microsoft.Extensions.Logging.LogLevel.Trace => Level.Trace,
@@ -71,7 +61,7 @@ namespace YandexCloud.Extensions.Logging
         };             
 
         public async void Log<TState>(
-            DateTime dateTime,
+            Timestamp dateTime,
             Microsoft.Extensions.Logging.LogLevel logLevel,
             EventId eventId,
             TState state,
@@ -91,19 +81,14 @@ namespace YandexCloud.Extensions.Logging
                 return;
             }
 
-            IncomingLogEntry entry;
-                      
+            IncomingLogEntry entry;                      
             if (typeof(TState).FullName == "Microsoft.Extensions.Logging.FormattedLogValues")
             {
                 entry = new()
                 {
                     Level = convertibleLogLevel.Value,
                     Message = state.ToString(),
-                    Timestamp = new Timestamp()
-                    {
-                        Nanos = dateTime.ToTimestamp().Nanos,
-                        Seconds = dateTime.ToTimestamp().Seconds
-                    },
+                    Timestamp = dateTime,
                     StreamName = config.StreamName ?? _name
                 };
             }
@@ -114,11 +99,7 @@ namespace YandexCloud.Extensions.Logging
                     JsonPayload = Struct.Parser.ParseJson(JsonSerializer.Serialize(state)),
                     Level = convertibleLogLevel.Value,
                     Message = $"{eventId.Id} {eventId.Name}",
-                    Timestamp = new Timestamp()
-                    {
-                        Nanos = dateTime.ToTimestamp().Nanos,
-                        Seconds = dateTime.ToTimestamp().Seconds
-                    },
+                    Timestamp = dateTime,
                     StreamName = config.StreamName ?? _name
                 };
             }
@@ -132,7 +113,7 @@ namespace YandexCloud.Extensions.Logging
             Exception? exception,
             Func<TState, Exception?, string> formatter)
         {
-            Log(DateTime.UtcNow, logLevel, eventId, state, exception, formatter);
+            Log(DateTime.UtcNow.ToTimestamp(), logLevel, eventId, state, exception, formatter);
         }
 
 
