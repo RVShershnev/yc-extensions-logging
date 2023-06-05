@@ -1,5 +1,5 @@
 # YandexCloud.Extensions.Logging
-A Yandex Cloud Logging provider for Microsoft.Extensions.Logging, the logging subsystem used by ASP.NET Core.
+A Yandex Cloud Logging provider for [Microsoft.Extensions.Logging](https://learn.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line), the logging subsystem used by ASP.NET Core.
 
 ## Install packege
 `

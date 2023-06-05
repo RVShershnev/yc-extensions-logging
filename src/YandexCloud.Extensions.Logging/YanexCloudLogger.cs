@@ -80,30 +80,17 @@ namespace YandexCloud.Extensions.Logging
             {
                 return;
             }
-
-            IncomingLogEntry entry;                      
-            if (typeof(TState).FullName == "Microsoft.Extensions.Logging.FormattedLogValues")
+            IncomingLogEntry entry = new()
             {
-                entry = new()
-                {
-                    Level = convertibleLogLevel.Value,
-                    Message = state.ToString(),
-                    Timestamp = dateTime,
-                    StreamName = config.StreamName ?? _name
-                };
+                Level = convertibleLogLevel.Value,
+                Message = state.ToString(),
+                Timestamp = dateTime,
+                StreamName = config.StreamName ?? _name
+            };                   
+            if (entry != null)
+            { 
+                _queue.Enqueue(entry);
             }
-            else
-            {                
-                entry = new()
-                {
-                    JsonPayload = Struct.Parser.ParseJson(JsonSerializer.Serialize(state)),
-                    Level = convertibleLogLevel.Value,
-                    Message = $"{eventId.Id} {eventId.Name}",
-                    Timestamp = dateTime,
-                    StreamName = config.StreamName ?? _name
-                };
-            }
-            _queue.Enqueue(entry);                            
         }
 
         public async void Log<TState>(

@@ -28,10 +28,31 @@ namespace YandexCloud.Extensions.Logging.Demo
                        
 
             var logger = host.Services.GetRequiredService<ILogger<Program>>();
-                      
-            logger.Log(LogLevel.Information, "My log");            
+
+            var message = new Mes();
+
+            logger.Log(LogLevel.Trace, AppLogEvents.Read, new CustomLog("1", "Log", "About", "That"), null, (x,y) => x.Message);
+            logger.Log(LogLevel.Information, "My log");     
+
+            logger.LogTrace("log trace");        
+
+            logger.LogDebug("log debug");        
+
+            logger.LogInformation("log information");       
+
+            logger.LogWarning("log warning");       
+
+            logger.LogError("log error");      
+
+            logger.LogCritical("log critical");                                
 
             await host.RunAsync();
         }
+    }
+
+    public class Mes
+    {
+        string Title { get; set; } = "Bug";
+        string Description { get; set; } = "About bug.";
     }
 }
