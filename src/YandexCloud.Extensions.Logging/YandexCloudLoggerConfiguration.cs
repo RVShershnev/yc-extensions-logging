@@ -1,13 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Yandex.Cloud;
-using Yandex.Cloud.Credentials;
-using Yandex.Cloud.Logging.V1;
+﻿using Yandex.Cloud.Credentials;
 
 namespace YandexCloud.Extensions.Logging
 {

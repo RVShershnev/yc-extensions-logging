@@ -1,11 +1,8 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
-using System.Text.Json;
 using Yandex.Cloud;
 using Yandex.Cloud.Logging.V1;
-using Microsoft.Extensions.DependencyInjection;
-using static Yandex.Cloud.K8S.V1.NetworkPolicy.Types;
 using static Yandex.Cloud.Logging.V1.LogLevel.Types;
 
 namespace YandexCloud.Extensions.Logging
